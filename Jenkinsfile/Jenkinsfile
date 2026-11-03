@@ -19,8 +19,10 @@ node('remote-node') {
     ])
 
     stage('Checkout') {
-        echo 'Checking out source code...'
+        echo 'Cleaning workspace and checking out source code...'
+        cleanWs() 
         git url: "https://github.com/NikhilVaghela07/Jenkins-Node-app-Task.git", branch: params.A_BRANCH
+        echo "${params.A_BRANCH}"
     }
 
     nodejs(nodeJSInstallationName: 'NODE_JS') {
@@ -31,23 +33,23 @@ node('remote-node') {
 
         stage('Build & Install Dependencies') {
             echo 'installing dependencies.'
-            sh 'test -f package.json || { echo "package.json was not found in the Jenkins workspace: $PWD"; exit 1; }'
             sh 'npm install'
             sh 'npm list -g pm2 || npm install pm2 -g' 
         }
+        
         stage("Build app and check Required dependency") {
-            withEnv(["APP_GIT_BRANCH=${params.A_BRANCH}", "JENKINS_NODE_COOKIE=dontKillMe"]) {
+            withEnv(["GIT_BRANCH=${params.A_BRANCH}", "JENKINS_NODE_COOKIE=dontKillMe"]) {
                 sh '''
                     if pm2 list | grep -q "NODE-APP"; then
-                        echo "Application is running. Reloading with latest code..."
-                        pm2 reload NODE-APP --update-env
-                    else
-                        echo "Application is not running. Starting new instance..."
-                        pm2 start server.js --name "NODE-APP" --update-env
+                        echo "Application is running. Stopping and deleting old instance to load fresh files..."
+                        pm2 delete NODE-APP
                     fi
+                    
+                    echo "Starting application with latest fetched code..."
+                    pm2 start server.js --name "NODE-APP" --update-env
                 '''
             }
-            echo "Application Started/Reloaded Successfully"
+            echo "Application Started Successfully"
         }
     }
 
@@ -63,4 +65,3 @@ node('remote-node') {
         echo 'Deployment stage skipped.'
     }
 }
-
