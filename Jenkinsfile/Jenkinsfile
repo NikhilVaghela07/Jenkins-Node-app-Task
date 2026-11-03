@@ -1,0 +1,66 @@
+node('remote-node') {
+    properties([
+        parameters([
+            gitParameter(
+                type: 'PT_BRANCH', 
+                name: 'A_BRANCH', 
+                branchFilter: 'origin/(.*)', 
+                defaultValue: 'main', 
+                description: 'Choose a branch for checkout', 
+                selectedValue: 'DEFAULT', 
+                sortMode: 'ASCENDING_SMART'
+            ), 
+            booleanParam(
+                name: 'DEPLOY_PROD', 
+                defaultValue: false, 
+                description: 'Select if you want to deploy to production'
+            )
+        ])
+    ])
+
+    stage('Checkout') {
+        echo 'Checking out source code...'
+        git url: "https://github.com/NikhilVaghela07/Jenkins-Node-app-Task.git", branch: params.A_BRANCH
+    }
+
+    nodejs(nodeJSInstallationName: 'NODE_JS') {
+        stage('Install Node Js') {
+            sh 'node -v'
+            sh 'npm -v'
+        }
+
+        stage('Build & Install Dependencies') {
+            echo 'installing dependencies.'
+            sh 'test -f package.json || { echo "package.json was not found in the Jenkins workspace: $PWD"; exit 1; }'
+            sh 'npm install'
+            sh 'npm list -g pm2 || npm install pm2 -g' 
+        }
+        stage("Build app and check Required dependency") {
+            withEnv(["APP_GIT_BRANCH=${params.A_BRANCH}", "JENKINS_NODE_COOKIE=dontKillMe"]) {
+                sh '''
+                    if pm2 list | grep -q "NODE-APP"; then
+                        echo "Application is running. Reloading with latest code..."
+                        pm2 reload NODE-APP --update-env
+                    else
+                        echo "Application is not running. Starting new instance..."
+                        pm2 start server.js --name "NODE-APP" --update-env
+                    fi
+                '''
+            }
+            echo "Application Started/Reloaded Successfully"
+        }
+    }
+
+    stage('Test') {
+        echo 'Running tests...'
+    }
+
+    if (params.DEPLOY_PROD) {
+        stage('Deploy') {
+            echo 'Deploying application...'
+        }
+    } else {
+        echo 'Deployment stage skipped.'
+    }
+}
+

@@ -1,0 +1,13 @@
+{
+  "name": "jenkins-node-app-task",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple Node.js application used by the Jenkins pipeline",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
