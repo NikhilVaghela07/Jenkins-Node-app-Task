@@ -37,29 +37,27 @@ node('remote-node') {
             sh 'npm list -g pm2 || npm install pm2 -g' 
         }
         
-        stage("Build app and check Required dependency") {
-            withEnv(["GIT_BRANCH=${params.A_BRANCH}", "JENKINS_NODE_COOKIE=dontKillMe"]) {
-                sh '''
-                    if pm2 list | grep -q "NODE-APP"; then
-                        echo "Application is running. Stopping and deleting old instance to load fresh files..."
-                        pm2 delete NODE-APP
-                    fi
-                    
-                    echo "Starting application with latest fetched code..."
-                    pm2 start server.js --name "NODE-APP" --update-env
-                '''
-            }
-            echo "Application Started Successfully"
-        }
     }
 
     stage('Test') {
-        echo 'Running tests...'
+        echo 'Running syntax and smoke tests...'
+        sh 'node --check server.js'
+        echo "Tests completed successfully."
     }
 
     if (params.DEPLOY_PROD) {
         stage('Deploy') {
-            echo 'Deploying application...'
+            withEnv(["GIT_BRANCH=${params.A_BRANCH}", "JENKINS_NODE_COOKIE=dontKillMe"]) {
+                sh '''
+                    if pm2 list | grep -q "NODE-APP"; then
+                        pm2 delete NODE-APP
+                    fi
+
+                    pm2 start server.js --name "NODE-APP" --update-env
+                    pm2 save
+                '''
+            }
+            echo 'Application deployed successfully.'
         }
     } else {
         echo 'Deployment stage skipped.'
