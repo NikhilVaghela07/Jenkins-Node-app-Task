@@ -1,5 +1,4 @@
-node('remote-node') {
-    properties([
+properties([
         parameters([
             gitParameter(
                 type: 'PT_BRANCH', 
@@ -17,7 +16,9 @@ node('remote-node') {
             )
         ])
     ])
-
+    
+node('remote-node') {
+    
     stage('Checkout') {
         echo 'Cleaning workspace and checking out source code...'
         cleanWs() 
