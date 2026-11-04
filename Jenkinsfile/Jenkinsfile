@@ -1,5 +1,4 @@
-node('remote-node') {
-    properties([
+properties([
         parameters([
             gitParameter(
                 type: 'PT_BRANCH', 
@@ -15,14 +14,32 @@ node('remote-node') {
                 defaultValue: false, 
                 description: 'Select if you want to deploy to production'
             )
+        ]),
+        pipelineTriggers([
+            [$class: 'GenericTrigger',
+                genericVariables: [
+                    [key: 'WEBHOOK_BRANCH', value: '$.ref']
+                ],
+                causeString: 'Triggered by a push to $WEBHOOK_BRANCH',
+                tokenCredentialId: 'generic-token',
+                printContributedVariables: false,
+                printPostContent: false,
+                regexpFilterText: '$WEBHOOK_BRANCH',
+                regexpFilterExpression: '^refs/heads/.+$'
+            ]
         ])
     ])
 
+node('remote-node') {
+
     stage('Checkout') {
         echo 'Cleaning workspace and checking out source code...'
-        cleanWs() 
-        git url: "https://github.com/NikhilVaghela07/Jenkins-Node-app-Task.git", branch: params.A_BRANCH
-        echo "${params.A_BRANCH}"
+        cleanWs()
+        def checkoutBranch = env.WEBHOOK_BRANCH
+            ? env.WEBHOOK_BRANCH.replaceFirst('^refs/heads/', '')
+            : params.A_BRANCH
+        git url: "https://github.com/NikhilVaghela07/Jenkins-Node-app-Task.git", branch: checkoutBranch
+        echo "Current Branch: ${checkoutBranch}"
     }
 
     nodejs(nodeJSInstallationName: 'NODE_JS') {
