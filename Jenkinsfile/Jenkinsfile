@@ -22,7 +22,7 @@ node('remote-node') {
         echo 'Cleaning workspace and checking out source code...'
         cleanWs() 
         git url: "https://github.com/NikhilVaghela07/Jenkins-Node-app-Task.git", branch: params.A_BRANCH
-        echo "${params.A_BRANCH}"
+        echo "Current Branch: ${params.A_BRANCH}"
     }
 
     nodejs(nodeJSInstallationName: 'NODE_JS') {
