@@ -26,6 +26,19 @@ node('remote-node') {
         echo "Current Branch: ${params.A_BRANCH}"
     }
 
+    stage('Checkout') {
+        echo 'Cleaning workspace and checking out source code...'
+        cleanWs() 
+        def branchToCheckout = env.GIT_BRANCH ?: params.A_BRANCH
+        
+        if (branchToCheckout.contains('origin/')) {
+            branchToCheckout = branchToCheckout.replace('origin/', '')
+        }
+        echo "Checking out targeted branch: ${branchToCheckout}"
+        git url: "https://github.com/NikhilVaghela07/Jenkins-Node-app-Task.git", branch: branchToCheckout
+        echo "${branchToCheckout}"
+    }
+
     nodejs(nodeJSInstallationName: 'NODE_JS') {
         stage('Install Node Js') {
             sh 'node -v'
