@@ -21,7 +21,7 @@ properties([
                     [key: 'WEBHOOK_BRANCH', value: '$.ref']
                 ],
                 causeString: 'Triggered by a push to $WEBHOOK_BRANCH',
-                tokenCredentialId: 'generic-webhook-token',
+                tokenCredentialId: 'generic-token',
                 printContributedVariables: false,
                 printPostContent: false,
                 regexpFilterText: '$WEBHOOK_BRANCH',
