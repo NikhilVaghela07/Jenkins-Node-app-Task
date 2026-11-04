@@ -22,13 +22,6 @@ node('remote-node') {
     stage('Checkout') {
         echo 'Cleaning workspace and checking out source code...'
         cleanWs() 
-        git url: "https://github.com/NikhilVaghela07/Jenkins-Node-app-Task.git", branch: params.A_BRANCH
-        echo "Current Branch: ${params.A_BRANCH}"
-    }
-
-    stage('Checkout') {
-        echo 'Cleaning workspace and checking out source code...'
-        cleanWs() 
         def branchToCheckout = env.GIT_BRANCH ?: params.A_BRANCH
         
         if (branchToCheckout.contains('origin/')) {
